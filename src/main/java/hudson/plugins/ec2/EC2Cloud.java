@@ -24,6 +24,7 @@
 package hudson.plugins.ec2;
 
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.services.ec2.model.*;
 import hudson.ProxyConfiguration;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
@@ -74,16 +75,6 @@ import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
-import com.amazonaws.services.ec2.model.DescribeSpotInstanceRequestsRequest;
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.InstanceStateName;
-import com.amazonaws.services.ec2.model.InstanceType;
-import com.amazonaws.services.ec2.model.KeyPair;
-import com.amazonaws.services.ec2.model.KeyPairInfo;
-import com.amazonaws.services.ec2.model.Reservation;
-import com.amazonaws.services.ec2.model.SpotInstanceRequest;
-import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
@@ -247,6 +238,14 @@ public abstract class EC2Cloud extends Cloud {
                         n++;
                     }
                 }
+            }
+        }
+        // Count pending spot requests too
+        for (SpotInstanceRequest sir : connect().describeSpotInstanceRequests().getSpotInstanceRequests()){
+            // Count Spot requests that are open and still have a
+            // chance to be active.
+            if (sir.getState().equals("open")) {
+                n++;
             }
         }
         return n;
